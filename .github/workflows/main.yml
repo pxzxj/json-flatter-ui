@@ -16,6 +16,7 @@ jobs:
         node-version: 20
     - run: npm install
     - run: npm run build
+    - run: touch ./out/.nojekyll
     - name: Deploy to GitHub Pages
       uses: crazy-max/ghaction-github-pages@v4
       with:
