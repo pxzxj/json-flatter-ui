@@ -2,108 +2,113 @@
 
 import { React, useState } from 'react';
 import { DownOutlined } from '@ant-design/icons';
-import { Button, Flex, Input, Tree, Space, Table, Tag } from 'antd';
+import {Button, Flex, Input, Tree, Space, Table, Tag, Dropdown, Menu, Switch} from 'antd';
 
-const ROOT = [{
-    title: 'JSON',
-    key: 'ROOT'
-}]
+import JSONFormat from 'json-format';
 
 function App() {
 
     const { TextArea } = Input;
 
     const [jsonText, setJsonText] = useState('');
-    const [treeData, setTreeData] = useState(ROOT);
-
-    const columns = [
+    const [treeData, setTreeData] = useState([{title: 'ROOT', key: 'ROOT', path: ''}]);
+    const [flatCfgObj, setFlatCfgObj] = useState({ignoreFields: [], flatFields: [], joinFields: [], mergeFields: []});
+    const flatCfgStr = JSONFormat(flatCfgObj);
+    const items = [
         {
-            title: 'Name',
-            dataIndex: 'name',
-            key: 'name',
-            render: (text) => <a>{text}</a>,
+            key: 'setRoot',
+            label: 'Set as rootField',
         },
         {
-            title: 'Age',
-            dataIndex: 'age',
-            key: 'age',
+            key: 'ignoreField',
+            label: 'IgnoreField',
         },
         {
-            title: 'Address',
-            dataIndex: 'address',
-            key: 'address',
+            key: 'mergeField',
+            label: 'MergeField'
         },
         {
-            title: 'Tags',
-            key: 'tags',
-            dataIndex: 'tags',
-            render: (_, { tags }) => (
-                <>
-                    {tags.map((tag) => {
-                        let color = tag.length > 5 ? 'geekblue' : 'green';
-                        if (tag === 'loser') {
-                            color = 'volcano';
-                        }
-                        return (
-                            <Tag color={color} key={tag}>
-                                {tag.toUpperCase()}
-                            </Tag>
-                        );
-                    })}
-                </>
-            ),
+            key: 'flatField',
+            label: 'FlatField'
         },
         {
-            title: 'Action',
-            key: 'action',
-            render: (_, record) => (
-                <Space size="middle">
-                    <a>Invite {record.name}</a>
-                    <a>Delete</a>
-                </Space>
-            ),
-        },
-    ];
-    const data = [
-        {
-            key: '1',
-            name: 'John Brown',
-            age: 32,
-            address: 'New York No. 1 Lake Park',
-            tags: ['nice', 'developer'],
-        },
-        {
-            key: '2',
-            name: 'Jim Green',
-            age: 42,
-            address: 'London No. 1 Lake Park',
-            tags: ['loser'],
-        },
-        {
-            key: '3',
-            name: 'Joe Black',
-            age: 32,
-            address: 'Sydney No. 1 Lake Park',
-            tags: ['cool', 'teacher'],
-        },
+            key: 'joinField',
+            label: 'JoinField'
+        }
     ];
 
+    const titleRender = (nodeData) => {
+        const onClick = ({ key }) => {
+            const path = nodeData.path;
+            const {...flatCfgObjCopy} = flatCfgObj;
+            switch (key) {
+                case 'setRoot' :
+                    flatCfgObjCopy.rootField = path;
+                    break;
+                case 'ignoreField':
+                    flatCfgObjCopy.ignoreFields.push(path);
+                    break;
+                case 'mergeField':
+                    flatCfgObjCopy.mergeFields.push(path);
+                    break;
+                case 'flatField':
+                    flatCfgObjCopy.flatFields.push(path);
+                    break;
+                case 'joinField':
+                    flatCfgObjCopy.joinFields.push(path);
+                    break;
+                default :
+            }
+            setFlatCfgObj(flatCfgObjCopy);
+        };
+        return (
+            <Dropdown menu={{
+                items, onClick
+            }} trigger={['contextMenu']}>
+                <div>{nodeData.title}</div>
+            </Dropdown>
+        );
+    };
+
+    const setCamelToUnderline = (value) => {
+        const {...flatCfgObjCopy} = flatCfgObj;
+        flatCfgObjCopy.camelToUnderscore = value;
+        setFlatCfgObj(flatCfgObjCopy);
+    }
+    const columns = [{title: 'Name', dataIndex: 'name'}];
+    const data = [{name: 'Josh Long',}];
     return (
-        <Flex gap="middle" vertical>
-            <TextArea value = {jsonText}
-                      onChange = {(e) => setJsonText(e.target.value)}
-                      onBlur = {() => setTreeData(calculateTreeData(jsonText))}
-            />
-            <Tree
-                showIcon
-                defaultExpandAll
-                defaultSelectedKeys={['0-0-0']}
-                switcherIcon={<DownOutlined />}
-                treeData={treeData}
-            />
-            <TextArea value = {jsonText} />
-            <Button type="primary">Flat</Button>
-            <Table columns={columns} dataSource={data} />
+        <Flex wrap="wrap" gap="middle" vertical={false}>
+            <div style={{ width: '33%'}} >
+                <TextArea value = {jsonText}
+                          onChange = {(e) => setJsonText(e.target.value)}
+                          onBlur = {() => setTreeData(calculateTreeData(jsonText))}
+                          autoSize={{ minRows: 10, maxRows: 15 }}
+                />
+            </div>
+            <div style={{ width: '30%'}} >
+                <Tree
+                    showIcon
+                    defaultExpandAll
+                    titleRender={titleRender}
+                    switcherIcon={<DownOutlined />}
+                    treeData={treeData}
+                />
+            </div>
+            <div style={{ width: '33%'}} >
+                <TextArea value = {flatCfgStr} autoSize={{ minRows: 9, maxRows: 15 }}/>
+                <Space>
+                    <span>camelToUnderline</span>
+                    <Switch defaultChecked onChange={setCamelToUnderline}/>
+                    <Button type="primary" danger onClick={() => {
+                        setFlatCfgObj({ignoreFields: [], flatFields: [], joinFields: [], mergeFields: []});
+                    }}>Reset</Button>
+                    <Button type="primary">Flat</Button>
+                </Space>
+            </div>
+            <div>
+                <Table columns={columns} dataSource={data} pagination={false} />
+            </div>
         </Flex>
     );
 }
@@ -116,27 +121,55 @@ function calculateTreeData(jsonText) {
 
     }
     if (jsonObj == null) {
-        return ROOT;
+        alert('illegal json');
+        return [{title: 'ROOT', key: 'ROOT', path: ''}];
     }
+    let treeData  = [{title: 'ROOT', key: 'ROOT', path: ''}];
+    traverseJsonObj(jsonObj, treeData[0], 'ROOT', '');
+    return treeData;
+}
 
-
-
-    return [
-        {
-            title: 'parent 2222222222222222222',
-            key: '0-0',
-            children: [
-                {
-                    title: 'leaf',
-                    key: '0-0-0',
-                },
-                {
-                    title: 'leaf',
-                    key: '0-0-1',
-                },
-            ],
-        },
-    ];
+/**
+ *
+ * @param jsonObj
+ * @param treeObj
+ * @param path 包含数组索引的路径
+ * @param nodePath 不包含数组索引的路径
+ */
+function traverseJsonObj(jsonObj, treeObj, path, nodePath) {
+    if (jsonObj instanceof Array) {
+        if(jsonObj.length > 0){
+            let children = [];
+            for (let idx in jsonObj) {
+                let idxPath = path + '.' + idx;
+                let child = {title: idx.toString(), key: idxPath, path: nodePath};
+                traverseJsonObj(jsonObj[idx], child, idxPath, nodePath);
+                children.push(child);
+            }
+            treeObj.children = children;
+        }
+    } else if (jsonObj instanceof Object) {
+        let children = [];
+        for (let key in jsonObj) {
+            let keyPath = path + '.' + key;
+            let objNodePath = nodePath;
+            if (objNodePath != '') {
+                objNodePath += '.';
+            }
+            objNodePath += key;
+            let child = {title: key, key: keyPath, path: objNodePath};
+            traverseJsonObj(jsonObj[key], child, keyPath, objNodePath);
+            children.push(child);
+        }
+        if (children.length > 0) {
+            treeObj.children = children;
+        }
+    } else {
+        if (jsonObj != null && (typeof jsonObj) == 'string') {
+            jsonObj = '"' + jsonObj + '"';
+        }
+        treeObj.title += ': ' + jsonObj;
+    }
 }
 
 export default App;
