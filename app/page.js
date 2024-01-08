@@ -76,7 +76,7 @@ function App() {
         setFlatCfgObj(flatCfgObjCopy);
     }
     const columns = [{title: 'Name', dataIndex: 'name'}];
-    const data = [{name: 'Josh Long',}];
+    const data = [{key: '1', name: 'Josh Long'}];
     return (
         <Flex wrap="wrap" gap="middle" vertical={false}>
             <div style={{ width: '33%'}} >
