@@ -1,2 +1,5 @@
 = json-flatter-ui
 
+用于通过简单的配置将Json数据转为RDB数据
+
+image::flatcat.png[]
