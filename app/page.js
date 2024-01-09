@@ -44,6 +44,22 @@ function App() {
         {
             key: 'joinField',
             label: 'JoinField'
+        },
+        {
+            key: 'unIgnoreField',
+            label: 'UnIgnoreField',
+        },
+        {
+            key: 'unMergeField',
+            label: 'UnMergeField'
+        },
+        {
+            key: 'unFlatField',
+            label: 'UnFlatField'
+        },
+        {
+            key: 'unJoinField',
+            label: 'UnJoinField'
         }
     ];
 
@@ -66,6 +82,30 @@ function App() {
                     break;
                 case 'joinField':
                     flatCfgObjCopy.joinFields.push(path);
+                    break;
+                case 'unIgnoreField':
+                    const index1 = flatCfgObjCopy.ignoreFields.indexOf(path);
+                    if (index1 != -1) {
+                        flatCfgObjCopy.ignoreFields.splice(index1, 1);
+                    }
+                    break;
+                case 'unMergeField':
+                    const index2 = flatCfgObjCopy.mergeFields.indexOf(path);
+                    if (index2 != -1) {
+                        flatCfgObjCopy.mergeFields.splice(index2, 1);
+                    }
+                    break;
+                case 'unFlatField':
+                    const index3 = flatCfgObjCopy.flatFields.indexOf(path);
+                    if (index3 != -1) {
+                        flatCfgObjCopy.flatFields.splice(index3, 1);
+                    }
+                    break;
+                case 'unJoinField':
+                    const index4 = flatCfgObjCopy.joinFields.indexOf(path);
+                    if (index4 != -1) {
+                        flatCfgObjCopy.joinFields.splice(index4, 1);
+                    }
                     break;
                 default :
             }
@@ -189,7 +229,11 @@ function flat(jsonStr, flatConfigurer) {
     if (flatConfigurer.rootField != '' && flatConfigurer.rootField != null && flatConfigurer.rootField != undefined) {
         rootFieldPaths = flatConfigurer.rootField.split('.');
     }
-    traverse(rootNode, '', rootFieldPaths, flatValues, {}, flatConfigurer);
+    try{
+        traverse(rootNode, '', rootFieldPaths, flatValues, {}, flatConfigurer);
+    }catch (error) {
+        console.error('捕获到异常：', error);
+    }
     if (flatConfigurer.camelToUnderscore) {
         let ctuValues = [];
         for (let i = 0; i < flatValues.length; i++) {
@@ -312,7 +356,7 @@ function flatNodeValues(jsonNode, path, valueMap, flatConfigurer) {
             }
         } else {
             alert(path + " node type is array, it must be ignore or join");
-            // throw new Error(path + " node type is array, it must be ignore or join");
+            throw new Error(path + " node type is array, it must be ignore or join");
         }
     } else if (jsonNode instanceof Object) {
         if (flatFields.includes(path)) {
@@ -321,7 +365,7 @@ function flatNodeValues(jsonNode, path, valueMap, flatConfigurer) {
             }
         } else {
             alert(path + " node type is object, it must be ignore or flat");
-            // throw new Error(path + " node type is object, it must be ignore or flat");
+            throw new Error(path + " node type is object, it must be ignore or flat");
         }
     } else {
         valueMap[path] = jsonNode;
@@ -372,7 +416,7 @@ function mergeFieldValues(path, nextRootFieldName, mergeFieldValueMap, jsonNode,
                     }
                 } else {
                     alert("merge field " + mergedPath + " cannot have multiple values!");
-                    // throw new Error("merge field " + mergedPath + " cannot have multiple values!");
+                    throw new Error("merge field " + mergedPath + " cannot have multiple values!");
                 }
             } else {
                 alert("merge field " + mergedPath + " not found!");
