@@ -6,6 +6,9 @@ import {Button, Flex, Input, Tree, Space, Table, Tag, Dropdown, Menu, Switch} fr
 
 import JSONFormat from 'json-format';
 
+import { BsBraces } from "react-icons/bs";
+import { BiBracket } from "react-icons/bi";
+
 function App() {
 
     const { TextArea } = Input;
@@ -138,6 +141,7 @@ function calculateTreeData(jsonText) {
  */
 function traverseJsonObj(jsonObj, treeObj, path, nodePath) {
     if (jsonObj instanceof Array) {
+        treeObj.icon = <BiBracket />
         if(jsonObj.length > 0){
             let children = [];
             for (let idx in jsonObj) {
@@ -149,6 +153,7 @@ function traverseJsonObj(jsonObj, treeObj, path, nodePath) {
             treeObj.children = children;
         }
     } else if (jsonObj instanceof Object) {
+        treeObj.icon = <BsBraces />
         let children = [];
         for (let key in jsonObj) {
             let keyPath = path + '.' + key;
